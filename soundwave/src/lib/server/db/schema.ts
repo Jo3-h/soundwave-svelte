@@ -1,5 +1,5 @@
 import pg from 'pg';
-import { pgTable, text, integer, timestamp, boolean } from 'drizzle-orm/pg-core';
+import { pgTable, text, serial, integer, timestamp, boolean } from 'drizzle-orm/pg-core';
 import { drizzle } from 'drizzle-orm/node-postgres';
 
 import type { InferSelectModel } from 'drizzle-orm';
@@ -8,7 +8,7 @@ const pool = new pg.Pool();
 const db = drizzle(pool);
 
 export const userTable = pgTable('user', {
-	id: text('id').primaryKey(),
+	id: serial('id').primaryKey(),
 
 	// Profile Details
 	username: text('username').notNull().unique(),
@@ -25,9 +25,9 @@ export const userTable = pgTable('user', {
 });
 
 export const keyTable = pgTable('key', {
-	id: text('id').primaryKey(), // Format: `${provider}:${providerUserId}` or UUID
+	id: text('id').primaryKey(), // Format: `${provider}:${userEmail}` or UUID
 
-	userId: text('user_id')
+	userId: serial('user_id')
 		.notNull()
 		.references(() => userTable.id, { onDelete: 'cascade' }),
 	primary: boolean('primary').notNull().default(false),
@@ -48,7 +48,7 @@ export const keyTable = pgTable('key', {
 export const sessionTable = pgTable('session', {
 	id: text('id').primaryKey(), // Usually a secure random token
 
-	userId: text('user_id')
+	userId: serial('user_id')
 		.notNull()
 		.references(() => userTable.id, { onDelete: 'cascade' }),
 

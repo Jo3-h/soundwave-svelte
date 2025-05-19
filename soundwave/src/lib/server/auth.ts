@@ -5,6 +5,7 @@ import { sha256 } from '@oslojs/crypto/sha2';
 import { db } from './db';
 import { userTable, sessionTable, keyTable, type User, type Session, type Key } from './db/schema';
 import type { RequestEvent } from '@sveltejs/kit';
+import { assert } from '../utils/assert';
 
 export function generateSessionToken(): string {
 	const bytes = new Uint8Array(20);
@@ -13,8 +14,9 @@ export function generateSessionToken(): string {
 	return token;
 }
 
-export async function createSession(token: string, userId: string): Promise<Session> {
+export async function createSession(token: string, userId: number): Promise<Session> {
 	const sessionId = encodeHexLowerCase(sha256(new TextEncoder().encode(token)));
+	assert(userId !== null, `Cannot have null value for session creation ${userId}`);
 	const session: Session = {
 		id: sessionId,
 		userId: userId,
@@ -63,7 +65,7 @@ export async function invalidateSession(sessionId: string): Promise<void> {
 	await db.delete(sessionTable).where(eq(sessionTable.id, sessionId));
 }
 
-export async function invalidateAllSessions(userId: string): Promise<void> {
+export async function invalidateAllSessions(userId: number): Promise<void> {
 	await db.delete(sessionTable).where(eq(sessionTable.userId, userId));
 }
 
