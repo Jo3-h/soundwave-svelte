@@ -26,6 +26,7 @@ export async function createSession(token: string, userId: number): Promise<Sess
 		createdAt: new Date(Date.now()),
 		updatedAt: new Date(Date.now())
 	};
+	await invalidateAllSessions(userId);
 	await db.insert(sessionTable).values(session);
 	return session;
 }
@@ -61,7 +62,9 @@ export async function validateSessionToken(token: string): Promise<SessionValida
 	return { session, user };
 }
 
-export async function invalidateSession(sessionId: string): Promise<void> {
+export async function invalidateSession(token: string): Promise<void> {
+	const sessionId = encodeHexLowerCase(sha256(new TextEncoder().encode(token)));
+	console.log(`deleting session id ${sessionId}`);
 	await db.delete(sessionTable).where(eq(sessionTable.id, sessionId));
 }
 
