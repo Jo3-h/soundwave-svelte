@@ -1,12 +1,24 @@
 import pg from 'pg';
-import { pgTable, text, serial, integer, timestamp, boolean } from 'drizzle-orm/pg-core';
+import {
+	pgTable,
+	text,
+	serial,
+	integer,
+	timestamp,
+	boolean,
+	foreignKey
+} from 'drizzle-orm/pg-core';
 import { drizzle } from 'drizzle-orm/node-postgres';
 
 import type { InferSelectModel } from 'drizzle-orm';
+import { int } from 'drizzle-orm/mysql-core';
+import { onDestroy } from 'svelte';
+import { parentPort } from 'worker_threads';
 
 const pool = new pg.Pool();
 const db = drizzle(pool);
 
+// -- User Table
 export const userTable = pgTable('user', {
 	id: serial('id').primaryKey(),
 
@@ -24,6 +36,7 @@ export const userTable = pgTable('user', {
 	updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'date' }).defaultNow()
 });
 
+// -- Key table
 export const keyTable = pgTable('key', {
 	id: text('id').primaryKey(), // Format: `${provider}:${userEmail}` or UUID
 
@@ -45,6 +58,7 @@ export const keyTable = pgTable('key', {
 	updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'date' }).defaultNow()
 });
 
+// Session Table
 export const sessionTable = pgTable('session', {
 	id: text('id').primaryKey(), // Usually a secure random token
 
@@ -61,6 +75,71 @@ export const sessionTable = pgTable('session', {
 	updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'date' }).defaultNow()
 });
 
+// -- Post table
+export const postTable = pgTable('posts', {
+	id: serial('id').primaryKey(),
+
+	userId: integer('user_id')
+		.notNull()
+		.references(() => userTable.id, { onDelete: 'cascade' }),
+	title: text('title').notNull(),
+	content: text('content').notNull(),
+
+	// Meta-data
+	createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' }).defaultNow(),
+	updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'date' }).defaultNow()
+});
+
+// -- Likes table
+export const likeTable = pgTable('likes', {
+	id: serial('id').primaryKey(),
+
+	userId: integer('user_id')
+		.notNull()
+		.references(() => userTable.id, { onDelete: 'cascade' }),
+	postId: integer('post_id').references(() => postTable.id, { onDelete: 'cascade' }),
+	commentId: integer('comment_id').references(() => commentTable.id, { onDelete: 'cascade' }),
+
+	// Meta-data
+	createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' }).defaultNow(),
+	updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'date' }).defaultNow()
+});
+
+// -- Comments table
+export const commentTable = pgTable(
+	'comments',
+	{
+		id: serial('id').primaryKey(),
+
+		postId: integer('post_id')
+			.notNull()
+			.references(() => postTable.id, { onDelete: 'cascade' }),
+
+		userId: integer('user_id')
+			.notNull()
+			.references(() => userTable.id, { onDelete: 'cascade' }),
+
+		content: text('content').notNull(),
+
+		parentId: integer('parent_id'),
+
+		createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' }).defaultNow(),
+		updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'date' }).defaultNow()
+	},
+	(table) => {
+		return {
+			parentReference: foreignKey({
+				columns: [table.parentId],
+				foreignColumns: [table.id],
+				name: 'comments_parent_id_fkey'
+			})
+		};
+	}
+);
+
 export type User = InferSelectModel<typeof userTable>;
 export type Key = InferSelectModel<typeof keyTable>;
 export type Session = InferSelectModel<typeof sessionTable>;
+export type Comment = InferSelectModel<typeof commentTable>;
+export type Like = InferSelectModel<typeof likeTable>;
+export type Post = InferSelectModel<typeof postTable>;
