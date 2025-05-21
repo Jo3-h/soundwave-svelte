@@ -1,3 +1,11 @@
 @import 'tailwindcss';
 @plugin '@tailwindcss/forms';
 @plugin '@tailwindcss/typography';
+
+.button {
+	@apply m-1 flex h-10 w-40 items-center justify-center rounded-xl bg-blue-300 text-center font-bold text-white shadow-md transition-all duration-75 active:bg-blue-200 active:shadow-inner;
+}
+
+.input-field {
+	@apply rounded-xl focus:border-blue-400 focus:ring-1 focus:ring-blue-400 focus:outline-none;
+}

@@ -10,7 +10,8 @@ import type { RequestEvent } from './$types';
  */
 export async function load(event: RequestEvent) {
 	if (event.locals.user !== null && event.locals.session !== null) {
-		return redirect(302, '/');
+		console.log('event ', event);
+		return {};
 	}
 	return {};
 }

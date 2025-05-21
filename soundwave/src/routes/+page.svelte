@@ -8,7 +8,7 @@
     {#if data.user}
     <img class="rounded-full" src={`https://images.weserv.nl/?url=${encodeURIComponent(data.user.profilePicture ?? '')}`} alt="img"/>
     {/if}
-    <h1>Welcome {data.user.username} to SvelteKit</h1>
+    <h1>Welcome {data.user?.username ?? ""} to SvelteKit</h1>
     <p>Visit <a href="https://svelte.dev/docs/kit">svelte.dev/docs/kit</a> to read the documentation</p>
     {#if data.user}
 
