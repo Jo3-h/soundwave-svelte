@@ -28,6 +28,7 @@ export async function createUser(
 		return user as User;
 	} catch (error) {
 		console.error('Error creating user: ', error);
+	} finally {
 		return null;
 	}
 }
@@ -114,7 +115,7 @@ export async function createUserFromGoogle(
 
 	if (user === null) return null;
 
-	const key = await createKey(user?.id, true, 'google', email, googleId);
+	await createKey(user?.id, true, 'google', email, googleId);
 
 	return user as User;
 }
