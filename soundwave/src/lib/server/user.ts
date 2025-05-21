@@ -32,14 +32,33 @@ export async function createUser(
 	}
 }
 
-export function updateUser(
+export async function updateUser(
+	userId: number,
 	username: string | null,
 	firstName: string | null,
 	lastName: string | null,
 	age: number | null,
 	profilePicture: string | null
-): User | null {
-	return null;
+): Promise<User | null> {
+	try {
+		const [user] = await db
+			.update(userTable)
+			.set({
+				...(username !== null && { username }),
+				...(firstName !== null && { firstName }),
+				...(lastName !== null && { lastName }),
+				...(age !== null && { age }),
+				...(profilePicture !== null && { profilePicture }),
+				updatedAt: new Date()
+			})
+			.where(eq(userTable.id, userId))
+			.returning();
+
+		return user as User;
+	} catch (error) {
+		console.error('Error updating user: ', error);
+		return null;
+	}
 }
 
 export async function getUserFromId(userId: number): Promise<User | null> {
