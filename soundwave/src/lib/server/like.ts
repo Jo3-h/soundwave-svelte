@@ -5,8 +5,8 @@ import { type Like, likeTable } from './db/schema';
 
 export async function createLike(
 	userId: number,
-	postId: number,
-	commentId: number
+	postId: number | null,
+	commentId: number | null
 ): Promise<Like | null> {
 	// check whether this post/comment is already liked
 	const result = await getLike(userId, postId, commentId);
